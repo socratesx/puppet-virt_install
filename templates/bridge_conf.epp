@@ -1,0 +1,35 @@
+<%- | $sys_ifaces=$facts[interfaces], 
+$bridge_name=lookup(virt_install::net_conf::vm_host_br_name), 
+$br_address="${lookup(virt_install::net_conf::vm_host_br_ip)}/${lookup(virt_install::net_conf::vm_host_br_prefix_size)}", 
+$br_gw=regsubst(lookup(virt_install::net_conf::vm_host_br_ip), '\\d{1,3}$', '1'),
+$br_dns=lookup(virt_install::net_conf::vm_host_br_dns), 
+$br_ifs=lookup(virt_install::net_conf::vm_host_br_if),
+$domain=lookup(virt_install::net_conf::vm_host_search_domain),
+| -%>
+
+---
+network:
+  version: 2
+  renderer: networkd
+  ethernets:
+<% $sys_ifaces.split(',').each  | String $iface | { -%>
+<% if $iface != lo and $iface!=br0 { -%>
+    <%= $iface %>:
+      dhcp4: false
+      dhcp6: false
+      addresses: []
+<% } -%>
+<% } -%>
+  
+  bridges:
+    <%= $bridge_name %>:
+      dhcp4: false
+      addresses: [ <%= $br_address %> ]
+      gateway4:  <%= $br_gw %>
+      interfaces: [ <%= $br_ifs %> ]
+      parameters:
+        stp: false
+        forward-delay: 0
+      nameservers:
+        addresses: <%= $br_dns %> 
+        search: <%= $domain %>

@@ -1,0 +1,28 @@
+<%- |
+
+$br_name = lookup(virt_install::net_conf::vm_host_br_name),
+$br_ip = lookup(virt_install::net_conf::vm_host_br_ip),
+$br_netmask = lookup(virt_install::net_conf::vm_host_br_netmask),
+$br_dns = lookup(virt_install::net_conf::vm_host_br_dns),
+$br_gw = lookup(virt_install::net_conf::vm_host_br_gw),
+$search = lookup(virt_install::net_conf::vm_host_search_domain),
+| -%>
+DEVICE=<%= $br_name %>
+BOOTPROTO="static"
+IPADDR=<%= $br_ip %>
+NETMASK=<%= $br_netmask %>
+<% if $br_gw { -%>
+GATEWAY=<%= $br_gw %>
+<% } -%>
+<% else { -%>
+GATEWAY=<%= regsubst($br_ip, '\\d{1,3}$', '1') %>
+<% } -%>
+<% $br_dns.each |$index, $dns | { -%>
+DNS<%= $index+1 %>=<%= $dns %>
+<% } -%>
+ONBOOT="yes"
+TYPE="Bridge"
+NM_CONTROLLED="no"
+<% if $search { -%>
+DOMAIN="<%= join($search,' ') %>"
+<% } -%>

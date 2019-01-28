@@ -1,0 +1,11 @@
+virt_install::libvirt_setup::repos:
+  - "archive.ubuntu.com/ubuntu-%{facts.os.distro.codename}"
+  - "archive.ubuntu.com/ubuntu-%{facts.os.distro.codename}-security"
+  - "archive.ubuntu.com/ubuntu-%{facts.os.distro.codename}-updates"
+  - "archive.ubuntu.com/ubuntu-%{facts.os.distro.codename}-backports"
+
+virt_install::libvirt_setup::packages:
+    - 'qemu-kvm'
+    - 'libvirt-bin'
+    - 'virtinst'
+    - 'wget'

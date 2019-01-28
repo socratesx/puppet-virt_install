@@ -1,0 +1,51 @@
+<%- | 
+
+$br_name = lookup(virt_install::net_conf::vm_host_br_name),
+$def_iface = lookup(virt_install::net_conf::vm_host_br_if),
+$br_ip = lookup(virt_install::net_conf::vm_host_br_ip),
+$br_netmask = lookup(virt_install::net_conf::vm_host_br_netmask),
+$br_dns = lookup(virt_install::net_conf::vm_host_br_dns),
+$br_gw = lookup(virt_install::net_conf::vm_host_br_gw),
+$network = lookup(virt_install::net_conf::vm_host_br_network),
+$broadcast = lookup(virt_install::net_conf::vm_host_br_broadcast),
+$prefix = lookup(virt_install::net_conf::vm_host_br_prefix_size),
+$search = lookup(virt_install::net_conf::vm_host_search_domain),
+| -%>
+
+auto lo
+iface lo inet loopback
+
+auto <%= $def_iface %>
+
+iface <%= $def_iface %> inet manual
+iface <%= $def_iface %> inet6 manual
+
+auto <%= $br_name %>
+iface <%= $br_name %> inet static
+        address <%= $br_ip %>
+        netmask <%= $br_netmask %>
+        network <%= $network %>
+        <%- if $broadcast { -%>
+        broadcast <%= $broadcast %>
+        <%- } -%>
+        <%- else { -%>
+        broadcast <%= regsubst($br_ip, '\\d{1,3}$', '255') %>
+        <%- } -%>
+        <%- if $br_gw { -%>
+        gateway <%= $br_gw %>
+        <%- } -%>
+        <%- else { -%>
+        gateway <%= regsubst($br_ip, '\\d{1,3}$', '1') %>
+        <%- } -%>
+        bridge_ports <%= $def_iface %>
+        bridge_stp off
+        bridge_fd 0
+        bridge_maxwait 0
+        dns-nameservers <%= $br_dns.join(' ') %>
+        <%- if $search { -%>
+        dns-search <%= $search.join(' ') %>
+        <%- } -%>
+
+#allow autoconf for ipv6
+iface <%= $br_name %> inet6 auto
+accept_ra 1

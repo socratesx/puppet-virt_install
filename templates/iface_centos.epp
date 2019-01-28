@@ -1,0 +1,10 @@
+<%- | 
+$br_name = lookup(virt_install::net_conf::vm_host_br_name),
+$def_iface = lookup(virt_install::net_conf::vm_host_br_if),
+| -%>
+DEVICE=<%= $def_iface %>
+TYPE=Ethernet
+BOOTPROTO=none
+ONBOOT=yes
+NM_CONTROLLED=no
+BRIDGE=<%= $br_name %>

@@ -1,0 +1,6 @@
+virt_install::libvirt_setup::packages:
+    - 'libselinux-python'
+    - 'qemu-kvm'
+    - 'libvirt'
+    - 'virt-install'
+    - 'wget'

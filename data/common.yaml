@@ -1,0 +1,26 @@
+---
+# VM Host Bridge network Configuration 
+
+virt_install::net_conf::vm_host_br_name: 'br0'
+virt_install::net_conf::vm_host_br_ip: "%{facts.networking.ip}"
+virt_install::net_conf::vm_host_br_netmask: "%{facts.networking.netmask}"
+virt_install::net_conf::vm_host_br_prefix_size: '24'
+virt_install::net_conf::vm_host_br_dns:
+  - '192.168.2.1'
+  - '1.1.1.1'
+virt_install::net_conf::vm_host_search_domain:
+  - "%{facts.networking.domain}"
+  - 'soc.home'
+
+virt_install::net_conf::vm_host_br_if: "%{facts.networking.primary}"
+virt_install::net_conf::vm_host_br_network: "%{facts.networking.network}"
+virt_install::net_conf::vm_host_br_broadcast: 
+virt_install::net_conf::vm_host_br_gw: "%{facts.gateway}"
+
+# Folder containing VM definition Files for VM_Provisioner Class
+virt_install::vm_provisioner::vm_data_dir: '/etc/puppetlabs/code/environments/production/modules/virt_install/data/vms/'
+
+# Default Libvirt Folders for Boot Images and Disk Files
+virt_install::libvirt_setup::libvirt_boot_image_folder: '/var/lib/libvirt/boot/'
+virt_install::libvirt_setup::libvirt_vm_disk_folder: '/var/lib/libvirt/images/'
+

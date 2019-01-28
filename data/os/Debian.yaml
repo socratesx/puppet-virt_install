@@ -1,0 +1,7 @@
+virt_install::libvirt_setup::packages:
+    - 'qemu-kvm'
+    - 'libvirt-clients'
+    - 'qemu-utils'
+    - 'libvirt-daemon-system'
+    - 'virtinst'
+    - 'wget'
