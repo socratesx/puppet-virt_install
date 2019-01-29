@@ -56,34 +56,72 @@ class virt_install::vm_provisioner (
             if is_absolute_path($vms[$key]['cdrom']){
                 notify{ $vms[$key]['cdrom']:
                     message => "Copying iso file to ${$vms[$key]['cdrom']}"
-                      }
-                file{ $vms[$key]['cdrom']:
-                    ensure => present,
-                    group  => 'libvirt',
-                    owner  => 'root',
-                    source => "puppet:///modules/virt_install/${cdrom_arg}"
                 }
+                
+                exec {"check_file_${vms[$key]['cdrom']}":
+                    command => '/bin/true',
+                    onlyif  => "/usr/bin/test ! -e  ${vms[$key]['cdrom']}",
+                }
+                file{ $vms[$key]['cdrom']:
+                    ensure  => present,
+                    group   => 'libvirt',
+                    owner   => 'root',
+                    source  => "puppet:///modules/virt_install/${cdrom_arg}",
+                    require => Exec["check_file_${vms[$key]['cdrom']}"],
+                    links   => 'follow'
+                }
+            }
+            else {
+
+                exec {"check_file_${vms[$key]['cdrom']}":
+                    command => '/bin/true',
+                    onlyif  => "/usr/bin/test 
+                        ! -e ${$boot_imgs}${vms[$key]['cdrom']}",
+                }
+                file{ "${$boot_imgs}${vms[$key]['cdrom']}":
+                    ensure  => present,
+                    group   => 'libvirt',
+                    owner   => 'root',
+                    source  => "puppet:///modules/virt_install/${cdrom_arg}",
+                    require => Exec["check_file_${vms[$key]['cdrom']}"],
+                    links   => 'follow'
+                }
+
             }
             
             if match($cdrom_arg, '^(ftp|http)') {
                 notify { $vms[$key]['cdrom']:
                     message => 'URL detected, downloading...'
                 }
+                $url = true
+            }
+            else{
+                $url = false
+            }
+            if $cdrom_arg == $vms[$key]['cdrom'] {
+                $source = "${boot_imgs}${vms[$key]['cdrom']}"
+                $filename = true
+            }
+            else {
+                $source = $vms[$key]['cdrom']
+                $filename = false
             }
             
-            archive { $vms[$key]['cdrom']:
-                source       => $vms[$key]['cdrom'],
-                path         => "${boot_imgs}${cdrom_arg}",
-                user         => 'root',
-                group        => 'libvirt',
-                extract_path => $boot_imgs,
-                provider     => 'wget',
-                extract      => $is_compressed,
-                cleanup      => $is_compressed,
-                creates      => "${boot_imgs}${iso_filename}"
-            }
-            notify { $cdrom_arg:
-                message => "The iso file is in ${boot_imgs}${cdrom_arg}"
+            if ! Archive[ $vms[$key]['cdrom']]{
+                archive { $vms[$key]['cdrom']:
+                    source       => $source,
+                    path         => "${boot_imgs}${cdrom_arg}",
+                    user         => 'root',
+                    group        => 'libvirt',
+                    extract_path => $boot_imgs,
+                    provider     => 'wget',
+                    extract      => $is_compressed,
+                    cleanup      => $is_compressed,
+                    creates      => "${boot_imgs}${iso_filename}",
+                }
+                notify { $cdrom_arg:
+                    message => "The iso file is in ${boot_imgs}${cdrom_arg}"
+                }
             }
 
         }
@@ -93,11 +131,12 @@ class virt_install::vm_provisioner (
             $disk_path =  match($disk, '\A[.]*[^,]*')[0]
             $disk_dir =  match ($disk_path, '\A.*\/')[0]
             $disk_name = basename($disk_path)
-            exec { "mkdir -p ${disk_dir}":
+            exec { "Create ${disk_name} Directory":
+                command => "mkdir -p ${disk_dir}",
                 user    => 'root',
                 group   => 'libvirt',
                 creates => $disk_dir,
-                path    => ['/bin/']
+                path    => ['/bin/'],
             }
 
             if !('size=' in $disk){
@@ -119,11 +158,22 @@ class virt_install::vm_provisioner (
                 }
             }
         }
-
-        $new=regsubst( join_keys_to_values($vms[$key], ' ').join(' --'),
-            '(http|ftp)\S*',
-            "${boot_imgs}${iso_filename}")
-
+        
+        if $url {
+            $new = regsubst( join_keys_to_values($vms[$key], ' ').join(' --'),
+                '(http|ftp)\S*',
+                "${boot_imgs}${iso_filename}")
+        }
+        elsif $filename {
+            $new = regsubst( join_keys_to_values($vms[$key], ' ').join(' --'),
+                $iso_filename,
+                "${boot_imgs}${iso_filename}")
+        }
+        else {
+            $new =  join_keys_to_values($vms[$key], ' ').join(' --')
+        }
+        
+        notify {$new:}
         exec{ "virt-install --${new}":
             user   => 'root',
             group  => 'libvirt',
