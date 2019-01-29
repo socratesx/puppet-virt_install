@@ -35,16 +35,27 @@ class virt_install::vm_provisioner (
     $boot_imgs = lookup(virt_install::libvirt_setup::libvirt_boot_image_folder))
 {
     $vms.keys.each | $key | {
-        $cdrom_arg=basename($vms[$key]['cdrom'])
+        $vm_name =  $vms[$key]['name']
         if $vms[$key]['cdrom']{
-            notify{ $vms[$key]['name']:
+            $cdrom = $vms[$key]['cdrom']
+        }
+        if $vms[$key]['disk']{
+            $vm_disks = $vms[$key]['disk']
+        }
+        if $vms[$key]['filesystem']{
+            $filesystems = $vms[$key]['filesystem']
+        }
+        
+        if $cdrom {
+            $cdrom_arg=basename($cdrom)
+            notify{ $vm_name:
                 message => 'cdrom argument is defined, checking its type...'
             }
             $ext=match($cdrom_arg, '\..{1,3}\z')
             if $ext[0] in ['.gz', '.bz2', '.zip'] {
                 $is_compressed = true
-                $iso_filename = basename($vms[$key]['cdrom'],$ext[0])
-                notify{ $vms[$key]['cdrom']:
+                $iso_filename = basename($cdrom,$ext[0])
+                notify{ $cdrom:
                     message => 'cdrom argument is compressed'
                 }
 
@@ -53,44 +64,44 @@ class virt_install::vm_provisioner (
                 $is_compressed = false
                 $iso_filename = $cdrom_arg
             }
-            if is_absolute_path($vms[$key]['cdrom']){
-                notify{ $vms[$key]['cdrom']:
-                    message => "Copying iso file to ${$vms[$key]['cdrom']}"
+            if is_absolute_path($cdrom){
+                notify{ $cdrom:
+                    message => "Copying iso file to ${cdrom}"
                 }
                 
-                exec {"check_file_${vms[$key]['cdrom']}":
+                exec {"check_file_$cdrom}":
                     command => '/bin/true',
-                    onlyif  => "/usr/bin/test ! -e  ${vms[$key]['cdrom']}",
+                    onlyif  => "/usr/bin/test ! -e  ${cdrom}",
                 }
-                file{ $vms[$key]['cdrom']:
+                file{ $cdrom:
                     ensure  => present,
                     group   => 'libvirt',
                     owner   => 'root',
                     source  => "puppet:///modules/virt_install/${cdrom_arg}",
-                    require => Exec["check_file_${vms[$key]['cdrom']}"],
+                    require => Exec["check_file_${cdrom}"],
                     links   => 'follow'
                 }
             }
             else {
 
-                exec {"check_file_${vms[$key]['cdrom']}":
+                exec {"check_file_${cdrom}":
                     command => '/bin/true',
                     onlyif  => "/usr/bin/test 
-                        ! -e ${$boot_imgs}${vms[$key]['cdrom']}",
+                        ! -e ${$boot_imgs}${cdrom}",
                 }
-                file{ "${$boot_imgs}${vms[$key]['cdrom']}":
+                file{ "${$boot_imgs}${cdrom}":
                     ensure  => present,
                     group   => 'libvirt',
                     owner   => 'root',
                     source  => "puppet:///modules/virt_install/${cdrom_arg}",
-                    require => Exec["check_file_${vms[$key]['cdrom']}"],
+                    require => Exec["check_file_${cdrom}"],
                     links   => 'follow'
                 }
 
             }
             
             if match($cdrom_arg, '^(ftp|http)') {
-                notify { $vms[$key]['cdrom']:
+                notify { $cdrom:
                     message => 'URL detected, downloading...'
                 }
                 $url = true
@@ -98,17 +109,17 @@ class virt_install::vm_provisioner (
             else{
                 $url = false
             }
-            if $cdrom_arg == $vms[$key]['cdrom'] {
-                $source = "${boot_imgs}${vms[$key]['cdrom']}"
+            if $cdrom_arg == $cdrom {
+                $source = "${boot_imgs}${cdrom}"
                 $filename = true
             }
             else {
-                $source = $vms[$key]['cdrom']
+                $source = $cdrom
                 $filename = false
             }
             
-            if ! Archive[ $vms[$key]['cdrom']]{
-                archive { $vms[$key]['cdrom']:
+            if ! Archive[ $cdrom ]{
+                archive { $cdrom:
                     source       => $source,
                     path         => "${boot_imgs}${cdrom_arg}",
                     user         => 'root',
@@ -125,40 +136,78 @@ class virt_install::vm_provisioner (
             }
 
         }
+        if $vm_disks and $vm_disks != 'none' {
+            $vm_disks.each | $disk | {
+                $disk_path =  match($disk, '\A[.]*[^,]*')[0]
+                $disk_dir =  match ($disk_path, '\A.*\/')[0]
+                $disk_name = basename($disk_path)
+                exec { "Create ${disk_name} Directory":
+                    command => "mkdir -p ${disk_dir}",
+                    user    => 'root',
+                    group   => 'libvirt',
+                    creates => $disk_dir,
+                    path    => ['/bin/'],
+                }
 
-        $disks=$vms[$key]['disk']
-        $disks.each | $disk | {
-            $disk_path =  match($disk, '\A[.]*[^,]*')[0]
-            $disk_dir =  match ($disk_path, '\A.*\/')[0]
-            $disk_name = basename($disk_path)
-            exec { "Create ${disk_name} Directory":
-                command => "mkdir -p ${disk_dir}",
-                user    => 'root',
-                group   => 'libvirt',
-                creates => $disk_dir,
-                path    => ['/bin/'],
-            }
-
-            if !('size=' in $disk){
-                if !('/dev/' in $disk){
-                    
-                    notify{ $disk_name:
-                        message => "Disk File Exists, copying to ${disk_path}"
-                    }
-                    
-                    file { $disk_path:
-                        ensure => file,
-                        source => "puppet:///modules/virt_install/${$disk_name}",
+                if !('size=' in $disk){
+                    if !('/dev/' in $disk){
+                        
+                        notify{ $disk_name:
+                            message => "Disk File Exists, copying to ${disk_path}"
+                        }
+                        
+                        file { $disk_path:
+                            ensure => file,
+                            source => "puppet:///modules/virt_install/${$disk_name}",
+                        }
                     }
                 }
-            }
-            else {
-                notify{ $disk_path:
-                    message => 'A new disk file will be created'
+                else {
+                    notify{ $disk_path:
+                        message => 'A new disk file will be created'
+                    }
                 }
             }
         }
         
+        if $filesystems {
+            
+            if $filesystems =~ Tuple {
+                notify{"${type($filesystems)}":}
+                $filesystems.each | $filesys | {
+                    $host_folder = match($filesys,'^[\w\/]*')[0]
+                    exec{"${host_folder}_for_${key}":
+                        command => '/bin/true',
+                        onlyif  => "/usr/bin/test ! -e ${$host_folder}"
+                        
+                    }
+                    file{ $host_folder:
+                        ensure => directory,
+                        owner => 'root',
+                        group => 'libvirt',
+                        require => Exec["${host_folder}_for_${key}"]
+                    }
+                }    
+            }
+           else {
+                notify{$key:}
+                $host_folder = match($filesystems,'^[\w\/]*')[0]
+                exec{"${host_folder}_for_${key}":
+                    command => '/bin/true',
+                    onlyif  => "/usr/bin/test ! -e ${$host_folder}"
+
+                }
+                file{ $host_folder:
+                    ensure => directory,
+                    owner => 'root',
+                    group => 'libvirt',
+                    require => Exec["${host_folder}_for_${key}"]
+                }
+
+            }
+        }
+        
+            
         if $url {
             $new = regsubst( join_keys_to_values($vms[$key], ' ').join(' --'),
                 '(http|ftp)\S*',
