@@ -74,13 +74,146 @@ The module intended usage is to mass provision libvirt domains by declaring each
 <h3> The Special Arguments: cdrom, disk, & network </h3>
 
 These options have extended functionality over the original virt-install utility:
-<b> cdrom </b>
+<h4> cdrom </h4>
 This option defines a bootable image file that the VM will use to boot during boot-time. 
 It takes the following argument types:
   - URLS: It downloads the image file from the network, it support ftp, http & https. If the file is compressed then it will decompress the image file and move it to the boot folder specified by the libvirt_boot_image_folder variable found in data/common.yaml
-  - Absolute Paths: If an absolute path is passed, then the module will look for the image filename in files/ directory and will copy it to the path that is passed.
-  - Filename: This indicated an isofile that is already contained in files/ directory. In this case it will copy the file on the the default boot directory provided by libvirt_boot_image_folder variable found in data/common.yaml.
-  
-  (to be continued...)
+  - Absolute Paths: If an absolute path is passed, then the module will look for the image filename in files/ directory and will copy it to the path that is passed. It is required that the user have added manually the file in the files/ folder.Normally, this type should handle also symlinks but in my case this wasn't possible.
+  - Filenames: If just a filename is passed then the module checks for that file in files/ directory and then it copies it to the default boot directory provided by libvirt_boot_image_folder variable found in data/common.yaml. It is required that the user have added manually the file in the files/ folder. Normally, this type should handle also symlinks but in my case this wasn't possible.
 
+<h4> disk </h4>
+This is a list option in VM definition file. Each item represent a disk argument, something like the following:
+```
+disk:
+  - '/disk_path/a_new_disk.qcow2,bus=virtio'
+  - '/dev/sdb,bus=virtio'
+  - 'disk_path/an_existing_disk.qcow2,bus=virtio'
+```
+During runtime, the above will be converted to:
+```
+{...} --disk /vm-images/pfsense/pfsense.qcow2,bus=virtio --disk /dev/sdb,bus=virtio {...}
+```
+If the 'size=' disk option is specified, like the first item above, the virt-install will create a new disk file. On the contrary, if the 'size=' is omitted then the virt-install assumes that the disk file is an existing file in the specified path. In this case the user must have included the disk file in the files/ folder. During runtime the module will check for the 'an_existing_disk.qcow2' file and will copy it to the specified folder, so the virt-install will detected it when invoked to the target.
 
+<h4> network </h4>
+
+Similarly with the disk option, the network is also defined as a list. And this is becasue a VM can have multiple NICs defined like the following example:
+```
+network:
+  - 'bridge=br0,model=virtio'
+  - 'bridge=br0,model=virtio'
+```
+During runtime, the above will be converted to
+```
+{...} --network bridge=br0,model=virtio --network bridge=br0,model=virtio {...}
+```
+<h2> Examples </h2>
+For this example I include my use case scenario, consisting one Storage VM and one Firewall, using the free open source Xigmanas and pfSense respectively. 
+Assuming that there are two VM definition files in data/vms like the following:
+
+```
+#data/vms/pfsense.yaml
+---
+name: 'pfSense'
+vcpus: '1,maxvcpus=2'
+cpu: host
+memory: '512,maxmemory=768'
+os-variant: freebsd10
+boot: hd,cdrom,menu=on
+disk:
+  - "/vm-images/pfsense/pfsense.qcow2,bus=virtio"
+network:
+  - 'bridge=br0,model=virtio'
+  - 'bridge=br0,model=virtio'
+graphics: vnc,listen=0.0.0.0,port=-1
+virt-type: kvm
+noautoconsole: ''
+hvm: ''
+autostart: ''
+
+#data/vms/xigmanas.yaml
+---
+name: Xigmanas
+vcpus: '2,maxvcpus=4'
+cpu: host
+memory: '512,maxmemory=768'
+os-variant: freebsd10
+boot: hd,cdrom,menu=on
+cdrom: 'https://downloads.sourceforge.net/project/xigmanas/XigmaNAS-11.2.0.4/11.2.0.4.6315/XigmaNAS-x64-LiveCD-11.2.0.4.6315.iso'
+disk:
+  - '/vm-images/xigmanas/xigmanas.qcow2,size=10,bus=virtio'
+  - '/dev/sdb,bus=virtio'
+  - '/dev/sdc,bus=virtio'
+network:
+  - bridge=br0,model=virtio
+graphics: vnc,listen=0.0.0.0,port=-1
+virt-type: kvm
+noautoconsole: ''
+hvm: ''
+autostart: ''
+
+```
+We can install these vms to an already working host by just using the following code in a manifest:
+
+```
+class { 'virt_install::vm_provisioner':}
+```
+
+We can also undefine them
+```
+ class { 'virt_install::undefine':}
+```
+
+If we have an empty host just after OS installation :
+
+```
+include virt_install
+```
+
+or a more complicated manifest:
+
+```
+node default {
+    include virt_install
+}
+
+node ubuntu18.soc.home {
+    class { 'virt_install::libvirt_setup':}
+    class { 'virt_install::net_conf':}
+    $new_container= {
+        connect    => 'lxc:///',
+        name       => 'container',
+        memory     => '128',
+        filesystem => ['/bin/,/bin/', '/home/socratesx,/mnt/home', '/root,/mnt/root', '/root/test_lxc,/test'],
+        init       => '/bin/sh'
+    }
+    $vms = {
+        'container1' => $new_container
+    }
+    class { 'virt_install::vm_provisioner':
+        vms => $vms
+    }
+}
+
+node debian.soc.home {
+    $new_demo = {
+        name    => 'demo',
+        memory  => '512',
+        disk    => ['/VMs/demodisk.qcow2,size=1'],
+        import  => ''
+    }
+    $vms = {
+        'vm1' => $new_demo
+    }
+    class { 'virt_install::vm_provisioner':
+        vms => $vms
+    }
+}
+
+```
+The above manifest, will configure ubuntu18 as a new libvirt kvm-host, will enable a bridge interface and define a new lxc container 
+as described in $container1 hash. Notice that the new container definition will override the default $vms parameter, so the yaml files in data/vms will not have any effect to this host.
+
+The debian node is already a libvirt host running VMs, but it will just provision a new demo VM as described in the $new_demo hash. 
+
+Every other node will run the default module's init.pp which calls all classes and installs the VMs in the data/VMs folder.
