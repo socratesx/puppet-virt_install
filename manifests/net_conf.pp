@@ -32,7 +32,7 @@ class virt_install::net_conf(
 $br_name = lookup(virt_install::net_conf::vm_host_br_name),
 $def_iface = lookup(virt_install::net_conf::vm_host_br_if),
 ){
-    
+
     if $br_name != $::facts['networking']['primary']{
         if $::facts['os']['family'] == 'Debian' {
             if $::facts['os']['distro']['codename'] == 'bionic' {
@@ -48,7 +48,7 @@ $def_iface = lookup(virt_install::net_conf::vm_host_br_if),
                             ensure  => 'file',
                             content => epp('virt_install/bridge_conf.epp'),
                     }
-                    
+
                     file {'/etc/netplan/50-cloud-init.yaml':
                             ensure =>'absent',
                     }
@@ -56,19 +56,19 @@ $def_iface = lookup(virt_install::net_conf::vm_host_br_if),
                             path => [ '/usr/sbin/' , '/bin/' , '/sbin/' ],
                             user => 'root',
                     }
-                    notify{'Netplan Restarted... 
+                    notify{'Netplan Restarted...
                     Network ocnfiguration completed':}
                 }
             }
             else{
-                notify {'Debian Family OS detected, 
+                notify {'Debian Family OS detected,
                 creating /etc/network/interfaces file': }
                 file { '/etc/network/interfaces':
                     ensure  => file,
                     content => epp('virt_install/net_debian.epp')
-                }->
+                }
 
-                exec { "ip addr flush dev ${def_iface} && 
+              ->exec { "ip addr flush dev ${def_iface} &&
                         systemctl restart networking":
                     path => ['/sbin/', '/usr/sbin/', '/bin/']
                 }
@@ -76,38 +76,38 @@ $def_iface = lookup(virt_install::net_conf::vm_host_br_if),
                 Network configuration completed.': }
             }
         }
-    
+
         elsif $::facts['os']['family'] == 'RedHat' {
-            notify {'RedHat Family OS detected, 
+            notify {'RedHat Family OS detected,
             creating network-scripts files': }
             file { "/etc/sysconfig/network-scripts/ifcfg-${br_name}":
                 ensure  => file,
                 content => epp('virt_install/br_centos.epp'),
-                
-            }->
-            file { "/etc/sysconfig/network-scripts/ifcfg-${def_iface}":
+
+            }
+          ->file { "/etc/sysconfig/network-scripts/ifcfg-${def_iface}":
                 ensure  => file,
                 content => epp('virt_install/iface_centos.epp'),
                 notify  => Service['network']
             }
-            
+
             service { 'network':
                 ensure => running,
                 enable => true,
             }
             notify {'Network restarted...
             Network configuration completed.': }
-                
+
         }
         else{
 
             fail( 'unsupported OS Family detected')
-            
+
         }
-        
+
     }
     else{
-        notify{' The primary interface is already a bridge. 
+        notify{' The primary interface is already a bridge.
         Ignoring net config!':}
     }
 

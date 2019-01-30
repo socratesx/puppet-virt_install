@@ -23,27 +23,27 @@ class virt_install::libvirt_setup(
     $iso_path=lookup(virt_install::libvirt_setup::libvirt_boot_image_folder),
     $disk_path=lookup(virt_install::libvirt_setup::libvirt_vm_disk_folder) )
 {
-        
+
         $packages=lookup(virt_install::libvirt_setup::packages)
         if $::facts['os']['name'] == 'Ubuntu' {
             notify{'Ubuntu OS detected, enabling universe repo':}
             exec{'add-apt-repository universe':
                 path=> ['/usr/bin/', '/bin/']
-    
+
             }
         }
-        
+
         notify{'Begining installation of necessary packages':}
         package{ $packages:
             ensure => present,
-        }->
-        
-        group{'libvirt':
+        }
+
+      ->group{'libvirt':
             ensure  => present,
             members => [ 'root' ]
-        }->
-        
-        file{[$iso_path, $disk_path]:
+        }
+
+      ->file{[$iso_path, $disk_path]:
             ensure => directory,
             owner  => 'root',
             group  => 'libvirt',

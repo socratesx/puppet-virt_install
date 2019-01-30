@@ -8,7 +8,7 @@
 #                                                                             #
 #   Parameters:                                                               #
 #   $vms: A dictionary that contains the VM names in the form                 #
-#   {'VM1': {'name': 'VM1_name'},                                             # 
+#   {'VM1': {'name': 'VM1_name'},                                             #
 #    'VM2': {'name': 'VM2_name'},                                             #
 #     :                                                                       #
 #    'VMn': {'name': 'VMn_name}                                               #
@@ -22,7 +22,7 @@
 #   the data/vms/*.yaml files                                                 #
 #                                                                             #
 ###############################################################################
-  
+
 class virt_install::undefine (
 Hash $vms= read_vm_files(lookup(virt_install::vm_provisioner::vm_data_dir)) )
 
@@ -37,9 +37,9 @@ Hash $vms= read_vm_files(lookup(virt_install::vm_provisioner::vm_data_dir)) )
             onlyif => [ "/bin/bash -c ' virsh domstate ${vms[$key]['name']}' ",
                         "/bin/bash -c 'virsh domstate ${vms[$key]['name']} |
                         grep 'running'' "]
-        } ->
-        
-        exec{"virsh undefine ${vm_name}":
+        }
+
+      ->exec{"virsh undefine ${vm_name}":
             user   => 'root',
             group  => 'libvirt',
             path   => ['/usr/bin/','/bin/'],

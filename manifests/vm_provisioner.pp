@@ -2,7 +2,7 @@
 # VM Provisioner:                                                             #
 # This class provision new VMs with the virt-install utility.                 #
 #                                                                             #
-# Parameters:                                                                 # 
+# Parameters:                                                                 #
 #                                                                             #
 # 1. $vms: A dictionary that contains the vm definitions as key-value pairs.  #
 #    The key is a reference value of the VM and the value is another dict     #
@@ -28,7 +28,7 @@
 #                                                                             #
 #    By default, it will use the parameter value on data/common.yaml file.    #
 #                                                                             #
-############################################################################### 
+###############################################################################
 
 class virt_install::vm_provisioner (
     $vms = read_vm_files(lookup(virt_install::vm_provisioner::vm_data_dir)),
@@ -45,7 +45,7 @@ class virt_install::vm_provisioner (
         if $vms[$key]['filesystem']{
             $filesystems = $vms[$key]['filesystem']
         }
-        
+
         if $cdrom {
             $cdrom_arg=basename($cdrom)
             notify{ $vm_name:
@@ -68,7 +68,7 @@ class virt_install::vm_provisioner (
                 notify{ $cdrom:
                     message => "Copying iso file to ${cdrom}"
                 }
-                
+
                 exec {"check_file_${cdrom_arg}":
                     command => '/bin/true',
                     onlyif  => "/usr/bin/test ! -e  ${cdrom}",
@@ -86,8 +86,7 @@ class virt_install::vm_provisioner (
 
                 exec {"check_file_${cdrom_arg}":
                     command => '/bin/true',
-                    onlyif  => "/usr/bin/test 
-                        ! -e ${$boot_imgs}${cdrom_arg}",
+                    onlyif  => "/usr/bin/test ! -e ${$boot_imgs}${cdrom_arg}",
                 }
                 file{ "${$boot_imgs}${cdrom_arg}":
                     ensure  => present,
@@ -99,7 +98,7 @@ class virt_install::vm_provisioner (
                 }
 
             }
-            
+
             if match($cdrom, '^(ftp|http)') {
                 notify { $cdrom:
                     message => 'URL detected, downloading...'
@@ -117,7 +116,7 @@ class virt_install::vm_provisioner (
                 $source = $cdrom
                 $filename = false
             }
-            
+
             if ! Archive[ $cdrom ]{
                 archive { $cdrom:
                     source       => $source,
@@ -151,11 +150,11 @@ class virt_install::vm_provisioner (
 
                 if !('size=' in $disk){
                     if !('/dev/' in $disk){
-                        
+
                         notify{ $disk_name:
                             message => "Disk File Exists, copying to ${disk_path}"
                         }
-                        
+
                         file { $disk_path:
                             ensure => file,
                             source => "puppet:///modules/virt_install/${$disk_name}",
@@ -169,16 +168,16 @@ class virt_install::vm_provisioner (
                 }
             }
         }
-        
+
         if $filesystems {
-            
+
             if $filesystems =~ Tuple {
                 $filesystems.each | $filesys | {
                     $host_folder = match($filesys,'^[\w\/]*')[0]
                     exec{"$::{host_folder}_for_$::{key}":
                         command => '/bin/true',
                         onlyif  => "/usr/bin/test ! -e ${$host_folder}"
-                        
+
                     }
                     file{ $host_folder:
                         ensure  => directory,
@@ -206,8 +205,8 @@ class virt_install::vm_provisioner (
 
             }
         }
-        
-            
+
+
         if $url {
             $new = regsubst( join_keys_to_values($vms[$key], ' ').join(' --'),
                 '(http|ftp)\S*',
@@ -221,7 +220,7 @@ class virt_install::vm_provisioner (
         else {
             $new =  join_keys_to_values($vms[$key], ' ').join(' --')
         }
-        
+
         notify {$new:}
         exec{ "virt-install --${new}":
             user   => 'root',
