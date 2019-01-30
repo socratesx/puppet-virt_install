@@ -69,7 +69,7 @@ class virt_install::vm_provisioner (
                     message => "Copying iso file to ${cdrom}"
                 }
                 
-                exec {"check_file_$cdrom}":
+                exec {"check_file_${cdrom_arg}":
                     command => '/bin/true',
                     onlyif  => "/usr/bin/test ! -e  ${cdrom}",
                 }
@@ -78,29 +78,29 @@ class virt_install::vm_provisioner (
                     group   => 'libvirt',
                     owner   => 'root',
                     source  => "puppet:///modules/virt_install/${cdrom_arg}",
-                    require => Exec["check_file_${cdrom}"],
+                    require => Exec["check_file_${cdrom_arg}"],
                     links   => 'follow'
                 }
             }
             else {
 
-                exec {"check_file_${cdrom}":
+                exec {"check_file_${cdrom_arg}":
                     command => '/bin/true',
                     onlyif  => "/usr/bin/test 
-                        ! -e ${$boot_imgs}${cdrom}",
+                        ! -e ${$boot_imgs}${cdrom_arg}",
                 }
-                file{ "${$boot_imgs}${cdrom}":
+                file{ "${$boot_imgs}${cdrom_arg}":
                     ensure  => present,
                     group   => 'libvirt',
                     owner   => 'root',
                     source  => "puppet:///modules/virt_install/${cdrom_arg}",
-                    require => Exec["check_file_${cdrom}"],
+                    require => Exec["check_file_${cdrom_arg}"],
                     links   => 'follow'
                 }
 
             }
             
-            if match($cdrom_arg, '^(ftp|http)') {
+            if match($cdrom, '^(ftp|http)') {
                 notify { $cdrom:
                     message => 'URL detected, downloading...'
                 }
@@ -173,35 +173,35 @@ class virt_install::vm_provisioner (
         if $filesystems {
             
             if $filesystems =~ Tuple {
-                notify{"${type($filesystems)}":}
                 $filesystems.each | $filesys | {
                     $host_folder = match($filesys,'^[\w\/]*')[0]
-                    exec{"${host_folder}_for_${key}":
+                    exec{"$::{host_folder}_for_$::{key}":
                         command => '/bin/true',
                         onlyif  => "/usr/bin/test ! -e ${$host_folder}"
                         
                     }
                     file{ $host_folder:
-                        ensure => directory,
-                        owner => 'root',
-                        group => 'libvirt',
-                        require => Exec["${host_folder}_for_${key}"]
+                        ensure  => directory,
+                        owner   => 'root',
+                        group   => 'libvirt',
+                        require => Exec["$::{host_folder}_for_$::{key}"]
                     }
-                }    
+                }
             }
-           else {
-                notify{$key:}
+            else {
                 $host_folder = match($filesystems,'^[\w\/]*')[0]
                 exec{"${host_folder}_for_${key}":
                     command => '/bin/true',
                     onlyif  => "/usr/bin/test ! -e ${$host_folder}"
 
                 }
-                file{ $host_folder:
-                    ensure => directory,
-                    owner => 'root',
-                    group => 'libvirt',
-                    require => Exec["${host_folder}_for_${key}"]
+                if ! Exec["${host_folder}_for_${key}"] {
+                    file{ $host_folder:
+                        ensure  => directory,
+                        owner   => 'root',
+                        group   => 'libvirt',
+                        require => Exec["${host_folder}_for_${key}"]
+                    }
                 }
 
             }
