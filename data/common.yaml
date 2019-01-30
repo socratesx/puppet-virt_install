@@ -10,7 +10,6 @@ virt_install::net_conf::vm_host_br_dns:
   - '1.1.1.1'
 virt_install::net_conf::vm_host_search_domain:
   - "%{facts.networking.domain}"
-  - 'soc.home'
 
 virt_install::net_conf::vm_host_br_if: "%{facts.networking.primary}"
 virt_install::net_conf::vm_host_br_network: "%{facts.networking.network}"
