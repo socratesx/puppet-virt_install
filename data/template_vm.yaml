@@ -1,0 +1,86 @@
+# This is a template file you can use to create a VM or container. Just uncomment the options that you want to use with virt-install.
+# Options that are followed by '' means they don't take any arguments, so if you want to use them just uncomment them.
+# For details on how to specify the options check the virt-install man page or https://linux.die.net/man/1/virt-install.
+# Deprecated options are not included. Feel free to change the file to suit your needs.
+---
+#
+#General Options
+#
+#name:
+#connect:
+#ram:
+#arch:
+#machine:
+#uuid:
+#vcpus:
+#cpuset:
+#numatune:
+#cpu:
+#
+#
+#Installation method options
+#
+#location: 
+#cdrom:  
+#livecd: '' 
+#import: '' 
+#os-type:  
+#os-variant:
+#init: 
+#extra-args:
+#initrd-inject:
+#pxe: ''
+#
+#
+#Storage Configuration
+#
+#disk: [] (This argument must be specified as an array with the disk args as items.) 
+#filesystem: [] (This argument must be specified as an array with the filesystem args as items.)
+#nodisks: '' 
+#
+#
+#Network Options
+#
+#network: [] (This argument must be specified as an array with the network args as items.) 
+#nonetworks: '' 
+#
+#
+#Graphics Options
+#
+#graphics: 
+#noautoconsole: ''
+#
+#
+#Virtualization Type Options
+#
+#virt-type: 
+#hvm: ''
+#noapic: ''
+#noacpi: ''
+#paravirt: ''
+#accelerate: ''
+#container: ''
+#
+#
+#Device Options:
+#
+#host-device:
+#soundhw: 
+#watchdog:
+#parallel: 
+#serial:
+#video:
+#channel:
+#console:
+#smartcard:
+#
+#
+#Miscellaneous Options:
+#
+#debug: ''
+#autostart: ''
+#noreboot: ''
+#wait:
+#force: ''
+#quiet: ''
+#

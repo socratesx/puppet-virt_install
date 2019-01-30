@@ -1,0 +1,21 @@
+---
+#Example: Define a VM and attach an existing disk to it. Notice that the cdrom arguments is not required if the disk exists already. 
+#Since the disk exists there is no need to specify a boot image because the VM will boot from the disk.
+#If you want to boot from a cdrom and install pfsense instead, you have to uncomment the commented cdrom line and add a 'size=' option to the disk argument.
+name: 'pfSense'
+vcpus: '1,maxvcpus=2'
+cpu: host
+memory: '512,maxmemory=768'
+os-variant: freebsd10
+boot: hd,cdrom,menu=on
+#cdrom: 'https://frafiles.pfsense.org/mirror/downloads/pfSense-CE-2.4.4-RELEASE-p1-amd64.iso.gz' # Don't worry about the .gz iso file, the module will decompress it before using it in virt-install.  
+disk:
+  - "/vm-images/pfsense/pfsense.qcow2,bus=virtio"   # The argument doesn't specifies 'size=' option, so the disk is existing. This setup requires the pfsense.qcow2 disk file to be in module's files/ folder. During puppet run the file will be copied to the target's '/vm-images/pfsense/' folder.
+network:                                            # Two NICs connected to the bridge interface of the Target.
+  - 'bridge=br0,model=virtio'
+  - 'bridge=br0,model=virtio'
+graphics: vnc,listen=0.0.0.0,port=-1
+virt-type: kvm
+noautoconsole: ''
+hvm: ''
+autostart: ''

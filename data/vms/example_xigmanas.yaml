@@ -1,0 +1,21 @@
+---
+#Example: Create VM and Install Xigmanas open source storage  
+name: 'Xigmanas'
+vcpus: '2,maxvcpus=4'
+cpu: host
+memory: '512,maxmemory=768'
+os-variant: freebsd10
+boot: hd,cdrom,menu=on
+cdrom: 'https://downloads.sourceforge.net/project/xigmanas/XigmaNAS-11.2.0.4/11.2.0.4.6315/XigmaNAS-x64-LiveCD-11.2.0.4.6315.iso' #The module will donwload the fileand use it during runtime.
+# cdrom: 'XigmaNAS-x64-LiveCD-11.2.0.4.6315.iso' # If you uncomment this line, make sure that the iso is in module's files/ folder. This will be copied to default boot images folder on the target.
+# cdrom: '/root/bootimages/XigmaNAS-x64-LiveCD-11.2.0.4.6315.iso' # If you uncomment this line, make sure that the iso is in module's files/ folder or in target's specified path.
+disk:
+  - "/vm-images/xigmanas/xigmanas.qcow2,size=10,bus=virtio" # A new disk file will be created on '/vm-images/xigmanas/'
+network:                                                    # One NIC connected to target's bridge interface. Make sure that the bridge name matches the one configured in data/common.yaml.
+  - bridge=br0,model=virtio     
+graphics: vnc,listen=0.0.0.0,port=-1
+virt-type: kvm
+noautoconsole: ''
+hvm: ''
+autostart: ''
+
