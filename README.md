@@ -36,28 +36,30 @@ The following classes are included:
        'VMn': {'optn': 'argn', 'optn': 'argn', ...}                            
       }  
       ```
-      VMn: unique key names for each VM                                        
-      optn: virt-install option name                                           
-      argn: virt-install option argument                                       
+      <b>VMn</b>: unique key names for each VM                                        
+      <b>optn</b>: virt-install option name                                           
+      <b>argn</b>: virt-install option argument                                       
       By default, the class uses the module's custom function read_vm_files() to return the parameter after parsing all the yaml files in data/vms folder.
 	  
     - $boot_imgs: A String that represents the folder were the iso boot images will reside on the target machine so they can be used during VM installation. By default, it will use the parameter value on data/common.yaml file.
 
 - <b>undefine</b>: Taking the same arguments as the previous class but reversing the action. This class destroys and undefines existing VMs on target.
-   -  $vms: A dictionary that contains the VM names in the form:
-      ```
-      {'VM1': {'name': 'VM1_name'},                                             
-       'VM2': {'name': 'VM2_name'},                                             
-        :                                                                       
-       'VMn': {'name': 'VMn_name'}                                              
-      }                                                                         
-     ``` 
-     VMn: A unique key name for each VM                                        
-     name: The keyword 'name'.                                                 
-     VM_name: The corresponding name of the VM.                                
+   - Parameters:
+   	-  $vms: A dictionary that contains the VM names in the form:
+	```
+	   {'VM1': {'name': 'VM1_name'},                                             
+	    'VM2': {'name': 'VM2_name'},                                             
+              :                                                                       
+	    'VMn': {'name': 'VMn_name'}                                              
+	   }                                                                         
+	```
+    	
+	<b>VMn</b>: A unique key name for each VM                                        
+ 	<b>name</b>: The keyword 'name'.                                                 
+ 	<b>VM_name</b>: The corresponding name of the VM.                                
+ 	If this parameter is not passed then it defaults to the VMs defined in the data/vms/*.yaml files
+   
 
-     If this parameter is not passed then it defaults to the VMs defined in    
-     the data/vms/*.yaml files
 
 
 <h2> Usage </h2>
