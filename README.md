@@ -12,19 +12,23 @@ This puppet module can execute the following tasks:
 <h3>Classes</h3>
 
 The following classes are included:
+
 - init: Default class, if the user use include-like statements the class by default will call all subclasses, except undefine.
   - Parameters: None
+  
 - libvirt_setup: This class is responsible for installing the libvirt hypervisor to the host and enabling its daemon.
   - Parameters:  
     - $iso_path:   A string representing the folder of the boot images (isos) a VM may need to boot during the runtime. By default, it       gets the value of libvirt_boot_image_folder variable found in the data/common.yaml
     - $disk_path: A String representing the folder that will contain the VM disk image files. By default, it gets the defined value of libvirt_vm_disk_folder variable in data/common.yaml
+
 - net_conf: The network cofiguration class that will create a bridge interface and attach the current primary interface to the bridge.
   - Parameters:
     - $br_name: A String representing the name of the bridge, e.g. 'br0'. If not set when using the class, it will check the common.yaml and will use the "virt_install::net_conf::vm_host_br_name" value.
     -  $def_iface: A String representing the interface name that will be added to the bridge. It defaults to the value of the facter's primary interface and can be overriden either directly or in the common.yaml file by changing the "virt_install::net_conf::vm_host_br_if" variable. 
+
 - vm_provisioner: The class the provisions new VMs either from inline declared Hash or from the yaml files, located in data/vms/. 
   - Parameters:
-    -  $vms: A dictionary that contains the vm definitions as key-value pairs. The key is a reference value of the VM and the value is another dict  containing the virt-intall options as keys and the corresponding arguments as values. The Hash has the following form: 
+    - $vms: A dictionary that contains the vm definitions as key-value pairs. The key is a reference value of the VM and the value is another dict  containing the virt-intall options as keys and the corresponding arguments as values. The Hash has the following form: 
       ```
       {'VM1': {'opt1': 'arg1', 'opt2': 'arg2', ...},                             
        'VM2': {'opt1': 'arg1', 'opt2': 'arg2', ...},                           
@@ -36,9 +40,11 @@ The following classes are included:
       optn: virt-install option name                                           
       argn: virt-install option argument                                       
       By default, the class uses the module's custom function read_vm_files() to return the parameter after parsing all the yaml files in data/vms folder.
-  -  $boot_imgs: A String that represents the folder were the iso boot images will reside on the target machine so they can be used during VM installation. By default, it will use the parameter value on data/common.yaml file.
+	  
+    - $boot_imgs: A String that represents the folder were the iso boot images will reside on the target machine so they can be used during VM installation. By default, it will use the parameter value on data/common.yaml file.
+
 - undefine: Taking the same arguments as the previous class but reversing the action. This class destroys and undefines existing VMs on target.
-  -  $vms: A dictionary that contains the VM names in the form:
+   -  $vms: A dictionary that contains the VM names in the form:
       ```
       {'VM1': {'name': 'VM1_name'},                                             
        'VM2': {'name': 'VM2_name'},                                             
@@ -56,10 +62,14 @@ The following classes are included:
 
 <h2> Usage </h2>
 
+The intended usage of the module is by defining yaml files and changing the default parameters on data/common.yaml files. The first thing, after reading the readme file, a user must do is to see the files in data/ folder. From there he/she can define new VMs and change the default parameters to suit their needs in their environment. 
+
 The classes can be used autonomously by declaring them using the resource-like declaration style:
+
 ```
 class { 'virt_install::undefine':}
 ```
+
 The above example will look for the default values in data/vms folder and will undefine all the VMs included there. You can override the default like the following:
 
 ```
@@ -67,6 +77,7 @@ class { 'virt_install::undefine':
           vms => { vm1 => {'name' => 'VM_NAME'} }        
       }
 ```
+
 This time only the VM_NAME will be undefined from the target host.
 
 The module intended usage is to mass provision libvirt domains by declaring each resource in the data/vms/ folder. This folder may contain any number of YAML files that each one contains key:value pairs of the virt-install utility where key = option and value = arguments. You can include any supported option of the virt-install utility. Options that take no arguments, like the --noautoconsole can be specified with an empty string as a value. 
@@ -74,43 +85,55 @@ The module intended usage is to mass provision libvirt domains by declaring each
 <h3> The Special Arguments: cdrom, disk, & network </h3>
 
 These options have extended functionality over the original virt-install utility:
+
 <h4> cdrom </h4>
+
 This option defines a bootable image file that the VM will use to boot during boot-time. 
 It takes the following argument types:
 
-  - <b>URLS</b>: It downloads the image file from the network, it support ftp, http & https. If the file is compressed then it will decompress the image file and move it to the boot folder specified by the libvirt_boot_image_folder variable found in data/common.yaml
-  
-  - <b>Absolute Paths</b>: If an absolute path is passed, then the module will look for the image filename in files/ directory and will copy it to the path that is passed. It is required that the user have added manually the file in the files/ folder.Normally, this type should handle also symlinks but in my case this wasn't possible.
-  
-  - <b>Filenames</b>: If just a filename is passed then the module checks for that file in files/ directory and then it copies it to the default boot directory provided by libvirt_boot_image_folder variable found in data/common.yaml. It is required that the user have added manually the file in the files/ folder. Normally, this type should handle also symlinks but in my case this wasn't possible.
+  - URLS: It downloads the image file from the network, it support ftp, http & https. If the file is compressed then it will decompress the image file and move it to the boot folder specified by the libvirt_boot_image_folder variable found in data/common.yaml
+
+  - Absolute Paths: If an absolute path is passed, then the module will look for the image filename in files/ directory and will copy it to the path that is passed. It is required that the user have added manually the file in the files/ folder.Normally, this type should handle also symlinks but in my case this wasn't possible.
+
+  - Filenames: If just a filename is passed then the module checks for that file in files/ directory and then it copies it to the default boot directory provided by libvirt_boot_image_folder variable found in data/common.yaml. It is required that the user have added manually the file in the files/ folder. Normally, this type should handle also symlinks but in my case this wasn't possible.
 
 <h4> disk </h4>
+
 This is a list option in VM definition file. Each item represent a disk argument, something like the following:
+
 ```
 disk:
   - '/disk_path/a_new_disk.qcow2,bus=virtio'
   - '/dev/sdb,bus=virtio'
   - 'disk_path/an_existing_disk.qcow2,bus=virtio'
 ```
+
 During runtime, the above will be converted to:
+
 ```
 {...} --disk /vm-images/pfsense/pfsense.qcow2,bus=virtio --disk /dev/sdb,bus=virtio {...}
 ```
+
 If the 'size=' disk option is specified, like the first item above, the virt-install will create a new disk file. On the contrary, if the 'size=' is omitted then the virt-install assumes that the disk file is an existing file in the specified path. In this case the user must have included the disk file in the files/ folder. During runtime the module will check for the 'an_existing_disk.qcow2' file and will copy it to the specified folder, so the virt-install will detected it when invoked to the target.
 
 <h4> network </h4>
 
 Similarly with the disk option, the network is also defined as a list. And this is becasue a VM can have multiple NICs defined like the following example:
+
 ```
 network:
   - 'bridge=br0,model=virtio'
   - 'bridge=br0,model=virtio'
 ```
+
 During runtime, the above will be converted to
+
 ```
 {...} --network bridge=br0,model=virtio --network bridge=br0,model=virtio {...}
 ```
+
 <h2> Examples </h2>
+
 For this example I include my use case scenario, consisting one Storage VM and one Firewall, using the free open source Xigmanas and pfSense respectively. 
 Assuming that there are two VM definition files in data/vms like the following:
 
@@ -156,6 +179,7 @@ hvm: ''
 autostart: ''
 
 ```
+
 We can install these vms to an already working host by just using the following code in a manifest:
 
 ```
@@ -163,6 +187,7 @@ class { 'virt_install::vm_provisioner':}
 ```
 
 We can also undefine them
+
 ```
  class { 'virt_install::undefine':}
 ```
@@ -174,6 +199,7 @@ include virt_install
 ```
 
 or a more complicated manifest:
+
 
 ```
 node default {
@@ -214,6 +240,7 @@ node debian.soc.home {
 }
 
 ```
+
 The above manifest, will configure ubuntu18 as a new libvirt kvm-host, will enable a bridge interface and define a new lxc container 
 as described in $container1 hash. Notice that the new container definition will override the default $vms parameter, so the yaml files in data/vms will not have any effect to this host.
 
