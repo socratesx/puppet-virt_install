@@ -77,9 +77,12 @@ These options have extended functionality over the original virt-install utility
 <h4> cdrom </h4>
 This option defines a bootable image file that the VM will use to boot during boot-time. 
 It takes the following argument types:
-  - URLS: It downloads the image file from the network, it support ftp, http & https. If the file is compressed then it will decompress the image file and move it to the boot folder specified by the libvirt_boot_image_folder variable found in data/common.yaml
-  - Absolute Paths: If an absolute path is passed, then the module will look for the image filename in files/ directory and will copy it to the path that is passed. It is required that the user have added manually the file in the files/ folder.Normally, this type should handle also symlinks but in my case this wasn't possible.
-  - Filenames: If just a filename is passed then the module checks for that file in files/ directory and then it copies it to the default boot directory provided by libvirt_boot_image_folder variable found in data/common.yaml. It is required that the user have added manually the file in the files/ folder. Normally, this type should handle also symlinks but in my case this wasn't possible.
+
+  - <b>URLS</b>: It downloads the image file from the network, it support ftp, http & https. If the file is compressed then it will decompress the image file and move it to the boot folder specified by the libvirt_boot_image_folder variable found in data/common.yaml
+  
+  - <b>Absolute Paths</b>: If an absolute path is passed, then the module will look for the image filename in files/ directory and will copy it to the path that is passed. It is required that the user have added manually the file in the files/ folder.Normally, this type should handle also symlinks but in my case this wasn't possible.
+  
+  - <b>Filenames</b>: If just a filename is passed then the module checks for that file in files/ directory and then it copies it to the default boot directory provided by libvirt_boot_image_folder variable found in data/common.yaml. It is required that the user have added manually the file in the files/ folder. Normally, this type should handle also symlinks but in my case this wasn't possible.
 
 <h4> disk </h4>
 This is a list option in VM definition file. Each item represent a disk argument, something like the following:
