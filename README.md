@@ -45,19 +45,18 @@ The following classes are included:
 
 - <b>undefine</b>: Taking the same arguments as the previous class but reversing the action. This class destroys and undefines existing VMs on target.
    - Parameters:
-   	-  $vms: A dictionary that contains the VM names in the form:
-	```
-	   {'VM1': {'name': 'VM1_name'},                                             
-	    'VM2': {'name': 'VM2_name'},                                             
-              :                                                                       
-	    'VMn': {'name': 'VMn_name'}                                              
-	   }                                                                         
-	```
-    	
-	<b>VMn</b>: A unique key name for each VM                                        
- 	<b>name</b>: The keyword 'name'.                                                 
- 	<b>VM_name</b>: The corresponding name of the VM.                                
- 	If this parameter is not passed then it defaults to the VMs defined in the data/vms/*.yaml files
+     - $vms: A dictionary that contains the VM names in the form:
+       ```
+       {'VM1': {'name': 'VM1_name'},                                             
+        'VM2': {'name': 'VM2_name'},                                             
+          :                                                                   
+        'VMn': {'name': 'VMn_name'}                                              
+       }                                                                         
+       ```
+    	<b>VMn</b>: A unique key name for each VM
+	<br><b>name</b>: The keyword 'name'.
+	<br><b>VM_name</b>: The corresponding name of the VM.
+	If this parameter is not passed then it defaults to the VMs defined in the data/vms/*.yaml files
    
 
 
