@@ -4,7 +4,7 @@
   "author": "Socrates Chouridis",
   "summary": "Installs Libvirt, Creates minimal network configuration and provision new VMs",
   "license": "GPL-3.0-or-later",
-  "source": "",
+  "source": "https://github.com/socratesx/puppet-virt_install",
   "tags": [ "libvirt", "kvm", "virt-install", "vm", "hypervisor", "qemu" ]
   "dependencies": [
     { "name":"puppet/archive","version_requirement":">= 3.2.1" }
