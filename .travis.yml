@@ -42,6 +42,5 @@ deploy:
   password:
     secure: ""
   on:
-    tags: true
     all_branches: true
     condition: "$DEPLOY_TO_FORGE = yes"
