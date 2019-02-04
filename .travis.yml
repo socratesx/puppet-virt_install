@@ -1,46 +1,42 @@
----
 sudo: false
 dist: trusty
 language: ruby
 cache: bundler
 before_install:
-  - bundle -v
-  - rm -f Gemfile.lock
-  - gem update --system
-  - gem --version
-  - bundle -v
+- bundle -v
+- rm -f Gemfile.lock
+- gem update --system
+- gem --version
+- bundle -v
 script:
-  - 'bundle exec rake $CHECK'
-bundler_args: --without system_tests
+- bundle exec rake $CHECK
+bundler_args: "--without system_tests"
 rvm:
-  - 2.5.1
+- 2.5.1
 env:
   global:
-    - BEAKER_PUPPET_COLLECTION=puppet6 PUPPET_GEM_VERSION="~> 6.0"
+  - BEAKER_PUPPET_COLLECTION=puppet6 PUPPET_GEM_VERSION="~> 6.0"
+  - secure: q5nY2biVlgX1f1d8IZGEpkJdc14T55O0RQYhth+KFbZWaXvWpOeXJFjoSU1DqjLltFW4sP3tUN+9T0Z0LsZdxtQ9iXKfi7P+3D8MA+ANfoCXOuA7EYJwIy0iBgqbgjEOes7trsN4ObEwzECo/1WceWUkIVNf/Bu5uvaD6ssDLgAAeoXjMtBr+yBisiFDUcbxAPK7tW4qlBDgom9c1e4d2Fwtwa/2HeEcc3ztCvkkxnJRyhWxerQ0XdbrnDgTqjX2je6I3YgJJeAlTysHrSo6w2jintuSP2lG6+eB4KQpGm6AjC9t0TKIubXrLHO4CmJAZAzM67fOEY9yGvYA1x4CxoVoCQO4Z2p0462cECoxuCX9ION8U81IA4FLzv6VPfRyUUXzZlMltlAPR/0IHyrTYf3sJ3UG82zfOFXjdv5NDGcH7eSYHwSFh0LhAtPyw5O5G1srIYbD1T/b3kW9Hfx2j23bkaBvyS8KIqg+WkkOtZC+ru4CVAEZ8mOqI7TXY340HZAc90JjZUSKR7oPJbqfeiqt/fNot9xJSQCVpf3OiirsXyrTPtykglBs6Tcr2I7aTLRIS4D5ohmyVeI1Tghr2MnDkcITlu2bLxC2Pm5InS0hcJVjbEMITOKE16pyGkcKbGw0S4tOF1qltaKEpBjgbDcJJAK+Py5zXDGEcLDGkq8=
 matrix:
   fast_finish: true
   include:
-    -
-      env: CHECK="syntax lint metadata_lint check:symlinks check:git_ignore check:dot_underscore check:test_file rubocop"
-    -
-      env: CHECK=parallel_spec
-    -
-      env: PUPPET_GEM_VERSION="~> 5.0" CHECK=parallel_spec
-      rvm: 2.4.4
-    -
-      env: PUPPET_GEM_VERSION="~> 4.0" CHECK=parallel_spec
-      rvm: 2.1.9
+  - env: CHECK="syntax lint metadata_lint check:symlinks check:git_ignore check:dot_underscore
+      check:test_file rubocop"
+  - env: CHECK=parallel_spec
+  - env: PUPPET_GEM_VERSION="~> 5.0" CHECK=parallel_spec
+    rvm: 2.4.4
+  - env: PUPPET_GEM_VERSION="~> 4.0" CHECK=parallel_spec
+    rvm: 2.1.9
 branches:
   only:
-    - master
-    - /^v\d/
+  - master
+  - "/^v\\d/"
 notifications:
   email: false
 deploy:
   provider: puppetforge
   user: puppet
   password:
-    secure: ""
+    secure: ''
   on:
     all_branches: true
-#    condition: "$DEPLOY_TO_FORGE = yes"
