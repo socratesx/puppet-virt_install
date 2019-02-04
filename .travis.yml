@@ -35,8 +35,10 @@ notifications:
   email: false
 deploy:
   provider: puppetforge
-  user: puppet
+  user: socratesx
   password:
-    secure: ''
+     secure: "DcRgKkUAwaPrRMXhVpfx0X5bEXCR/9A7KQVAJDX2E7mDkLL6ABNpOocTrG2m4vlu1MaquQxYVSmCyyWiMQ2hIOpvBymVuG3UDUzrJDeXC3zBNacGW1jXNUcE3GG2glcfOFBWifaj/VKU1zSsTHBmFhfQ0WZhwvmpI7LvO4QR82GarGKbpudLMppZISgw6SxfU8oVj8eSgSrEf+GEGVKPtlI/cbtGeKxsBlz5LBgtt0FVrcB6vmWYNJGhvWpew2TkzUPM+SL/hhDUOoZlnwu1exTZgWDl4jMEz+Tp9L0/Oqtx7SWCs5t/balXgEy2bAluiy7MGOuRS5M9lvZW30zzNlB6UxjqzMd6tRMnXJeZO++01q9ET1nDMwn2XfpeXDQfVLcCE9VD/e3MNFK393P4l1yMLXLKlfDDGzkObUJLjtIt0QON8n1D27iMwkadEvmVkGZz+/qBBAWBS4GiTpOBmMvdLXfZWFPBXe7R2P1o1FBEYgDIiEWp1ByK4WXA5nH1tw2ulLcpdciduoRJKsxcJzRIkTqKUrc6/Z6tmbs4auJfq1ntZwO2FocQbUE/k0TCTWttho9TfPH230ddWL+TryQ678YG/+eZM97nfV5CuK2kPgl47I01KKDZv+2sCTH1hIvvlZszBdsjTxeIFsYn2gq4tMtbagtORepEUb7Dze0="
   on:
+    tags: true
     all_branches: true
+    condition: "$DEPLOY_TO_FORGE = yes"
