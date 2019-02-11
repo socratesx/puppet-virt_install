@@ -4,7 +4,7 @@ language: ruby
 cache: bundler
 before_install:
 - wget https://apt.puppetlabs.com/puppet6-release-xenial.deb || sudo dpkg -i puppet6-release-xenial.deb
-- sudo apt-get install -y pdk
+- sudo apt update || sudo apt-get install -y pdk
 - bundle -v
 - rm -f Gemfile.lock
 - gem update --system
