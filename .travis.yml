@@ -4,7 +4,7 @@ language: ruby
 cache: bundler
 before_install:
 - wget https://pm.puppet.com/cgi-bin/pdk_download.cgi?dist=ubuntu&rel=16.04&arch=amd64&ver=latest
-- dpkg -i pdk_1.9.0.0-1xenial_amd64
+- sudo dpkg -i pdk_1.9.0.0-1xenial_amd64
 - bundle -v
 - rm -f Gemfile.lock
 - gem update --system
